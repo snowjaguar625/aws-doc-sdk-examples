@@ -34,7 +34,8 @@ public class ListObjects
             "\n" +
             "Ex: ListObjects <bucket-name>\n";
 
-        if (args.length < 1) {
+        if (args.length < 1)
+        {
             System.out.println(USAGE);
             System.exit(1);
         }
@@ -45,7 +46,8 @@ public class ListObjects
         final AmazonS3 s3 = new AmazonS3Client();
         ObjectListing ol = s3.listObjects(bucket_name);
         List<S3ObjectSummary> objects = ol.getObjectSummaries();
-        for (S3ObjectSummary os: objects) {
+        for (S3ObjectSummary os: objects)
+        {
             System.out.println("* " + os.getKey());
         }
     }

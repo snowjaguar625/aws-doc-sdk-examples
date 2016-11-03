@@ -34,7 +34,8 @@ public class DeleteObject
             "\n" +
             "Ex: DeleteObject <bucketname> <objectname>\n";
 
-        if (args.length < 2) {
+        if (args.length < 2)
+        {
             System.out.println(USAGE);
             System.exit(1);
         }
@@ -47,7 +48,8 @@ public class DeleteObject
         final AmazonS3 s3 = new AmazonS3Client();
         try {
             s3.deleteObject(bucket_name, object_key);
-        } catch (AmazonServiceException e) {
+        }
+        catch (AmazonServiceException e) {
             System.err.println(e.getErrorMessage());
             System.exit(1);
         }
