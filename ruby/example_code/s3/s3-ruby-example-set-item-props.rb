@@ -17,20 +17,20 @@ args_list[:bucket] = 'my-bucket'
 args_list[:key]    = 'my-item'
 
 # Where we are getting the source to copy from
-args_list[:copy_source] = 'my-bucket/my-item'
+arg_list[:copy_source] = 'my-bucket/my-item'
 
 # The acl can be any of:
 # private, public-read, public-read-write, authenticated-read, aws-exec-read, bucket-owner-read, bucket-owner-full-control
-args_list[:acl] = 'public-read'
+args_list[:acl] = 'public_read'
 
 # The encryption can be any of:
 # AES256, aws:kms
-args_list[:server_side_encryption] = 'AES256'
+arg_list[:server_side_encryption] = 'AES256'
 
 # The storage_class can be any of:
 # STANDARD, REDUCED_REDUNDANCY, STANDARD_IA
-args_list[:storage_class] = 'REDUCED_REDUNDANCY'
+arg_list[:storage_class] = 'REDUCED_REDUNDANCY'
 
 client = Aws::S3::Client.new(region: 'us-west-2')
 
-client.copy_object(args_list)
+client.copy_object(arg_list)
