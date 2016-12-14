@@ -12,21 +12,14 @@
    specific language governing permissions and limitations under the License.
 */
 package aws.example.dynamodb;
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
+import com.amazonaws.AmazonServiceException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
- * Get an item from a DynamoDB table.
- *
- * Takes the name of the table and the name of the item to retrieve from it.
- *
- * The primary key searched is "Name", and the value contained by the field
- * "Greeting" will be returned.
+ * Update a DynamoDB table (change provisioned throughput).
  *
  * This code expects that you have AWS credentials set up per:
  * http://docs.aws.amazon.com/java-sdk/latest/developer-guide/setup-credentials.html
@@ -36,33 +29,20 @@ public class GetItem
     public static void main(String[] args)
     {
         final String USAGE = "\n" +
-            "Usage:\n" +
-            "    GetItem <table> <name> [projection_expression]\n\n" +
-            "Where:\n" +
-            "    table - the table to get an item from.\n" +
-            "    name  - the item to get.\n\n" +
-            "You can add an optional projection expression (a quote-delimited,\n" +
-            "comma-separated list of attributes to retrieve) to limit the\n" +
-            "fields returned from the table.\n\n" +
-            "Example:\n" +
-            "    GetItem HelloTable World\n" +
-            "    GetItem SiteColors text \"default, bold\"\n";
+            "To run this example, type a name that was previously added to\n" +
+            "the HelloTable DynamoDB table with PutItem.\n" +
+            "Ex:   GetItem World\n";
 
-        if (args.length < 2) {
+        if (args.length < 1) {
             System.out.println(USAGE);
             System.exit(1);
         }
 
-        String table_name = args[0];
-        String name = args[1];
-        String projection_expression = null;
+        String table_name = "HelloTable";
+        String name = args[0];
 
-        // if a projection expression was included, set it.
-        if (args.length == 3) {
-            projection_expression = args[2];
-        }
-
-        System.out.format("Retrieving item \"%s\" from \"%s\"\n",
+        System.out.format(
+                "Retrieving greeting for \"%s\" from %s\n",
                 name, table_name);
 
         HashMap<String,AttributeValue> key_to_get =
@@ -70,31 +50,16 @@ public class GetItem
 
         key_to_get.put("Name", new AttributeValue(name));
 
-        GetItemRequest request = null;
-        if (projection_expression != null) {
-            request = new GetItemRequest()
-                .withKey(key_to_get)
-                .withTableName(table_name)
-                .withProjectionExpression(projection_expression);
-        } else {
-            request = new GetItemRequest()
-                .withKey(key_to_get)
-                .withTableName(table_name);
-        }
-
         final AmazonDynamoDBClient ddb = new AmazonDynamoDBClient();
 
         try {
-            Map<String,AttributeValue> returned_item =
-               ddb.getItem(request).getItem();
+            Map<String,AttributeValue> returned_item = ddb.getItem(
+                    table_name, key_to_get).getItem();
             if (returned_item != null) {
-                Set<String> keys = returned_item.keySet();
-                for (String key : keys) {
-                    System.out.format("%s: %s\n",
-                            key, returned_item.get(key).toString());
-                }
+                String greeting = returned_item.get("Greeting").getS();
+                System.out.format("%s, %s!\n", greeting, name);
             } else {
-                System.out.format("No item found with the key %s!\n", name);
+                System.out.format("No greeting found for %s!\n", name);
             }
         } catch (AmazonServiceException e) {
             System.err.println(e.getErrorMessage());
