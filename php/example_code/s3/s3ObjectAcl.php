@@ -24,13 +24,15 @@ $s3Client = new S3Client([
     'version' => '2006-03-01'
 ]);
 
-// Gets the access control policy for a bucket
+// Gets the access control list (ACL) of an object.
 $bucket = 'my-s3-bucket';
+$key = 'my-object';
 try {
-    $resp = $s3Client->getBucketAcl([
-        'Bucket' => $bucket
+    $resp = $s3Client->getObjectAcl([
+        'Bucket' => $bucket,
+        'Key' => $key,
     ]);
-    echo "Succeed in retrieving bucket ACL as follows: \n";
+    echo "Succeed in retrieving object ACL as follows: \n";
     var_dump($resp);
 } catch (AwsException $e) {
     // output error message if fails
@@ -38,11 +40,12 @@ try {
     echo "\n";
 }
 
-// Sets the permissions on a bucket using access control lists (ACL).
+// Use acl subresource to set the access control list (ACL) permissions
+// for an object that already exists in a bucket
 $params = [
     'ACL' => 'public-read',
     'AccessControlPolicy' => [
-        // Information can be retrieved from `getBucketAcl` response
+        // Information can be retrieved from `getObjectAcl` response
         'Grants' => [
             [
                 'Grantee' => [
@@ -62,11 +65,12 @@ $params = [
         ],
     ],
     'Bucket' => $bucket,
+    'Key' => $key,
 ];
 
 try {
-    $resp = $s3Client->putBucketAcl($params);
-    echo "Succeed in setting bucket ACL.\n";
+    $resp = $s3Client->putObjectAcl($params);
+    echo "Succeed in setting object ACL.\n";
 } catch (AwsException $e) {
     // Display error message
     echo $e->getMessage();
