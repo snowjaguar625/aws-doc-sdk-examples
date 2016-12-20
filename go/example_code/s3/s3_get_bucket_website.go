@@ -19,22 +19,22 @@ import (
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-// Creates an S3 Bucket in the region configured in the shared config
-// or AWS_REGION environment variable.
+// Retrievs the bucket's website configuration.
 //
 // Usage:
-//    go run s3_create_bucket BUCKET_NAME
+//    go run s3_get_bucekt_website.go BUCKET_NAME
 func main() {
 	if len(os.Args) != 2 {
 		exitErrorf("bucket name required\nUsage: %s bucket_name", os.Args[0])
 	}
 	bucket := os.Args[1]
 
-	// Initialize a session that the SDK will use to load configuration,
+	// Inititalize a session that the SDK will use to load configuration,
 	// credentials, and region from the shared config file. (~/.aws/config).
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		SharedConfigState: session.SharedConfigEnable,
@@ -43,24 +43,22 @@ func main() {
 	// Create S3 service client
 	svc := s3.New(sess)
 
-	// Create the S3 Bucket
-	_, err := svc.CreateBucket(&s3.CreateBucketInput{
+	// Call S3 to retrieve the website configuration for the bucket
+	result, err := svc.GetBucketWebsite(&s3.GetBucketWebsiteInput{
 		Bucket: aws.String(bucket),
 	})
 	if err != nil {
-		exitErrorf("Unable to create bucket %q, %v", bucket, err)
+		// Check for the NoSuchWebsiteConfiguration error code telling us
+		// that the bucket does not have a website configured.
+		if awsErr, ok := err.(awserr.Error); ok && awsErr.Code() == "NoSuchWebsiteConfiguration" {
+			exitErrorf("Bucket %s does not have website configuration\n", bucket)
+		}
+		exitErrorf("Unable to get bucket website config, %v", err)
 	}
 
-	// Wait until bucket is created before finishing
-	fmt.Printf("Waiting for bucket %q to be created...\n", bucket)
-	err = svc.WaitUntilBucketExists(&s3.HeadBucketInput{
-		Bucket: aws.String(bucket),
-	})
-	if err != nil {
-		exitErrorf("Error occurred while waiting for bucket to be created, %v", bucket)
-	}
-
-	fmt.Printf("Bucket %q successfully created\n", bucket)
+	// Print out the details about the bucket's website config.
+	fmt.Println("Bucket Website Configuration:")
+	fmt.Println(result)
 }
 
 func exitErrorf(msg string, args ...interface{}) {
