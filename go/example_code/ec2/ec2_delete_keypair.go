@@ -17,22 +17,25 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-// Creates an S3 Bucket in the region configured in the shared config
-// or AWS_REGION environment variable.
+// Deletes a EC2 key pair for the name provided. No error will be returned
+// if the key pair does not exist.
 //
 // Usage:
-//    go run s3_create_bucket BUCKET_NAME
+//    go run ec2_delete_keypair.go KEY_PAIR_NAME
 func main() {
 	if len(os.Args) != 2 {
-		exitErrorf("bucket name required\nUsage: %s bucket_name", os.Args[0])
+		exitErrorf("pair name required\nUsage: %s key_pair_name",
+			filepath.Base(os.Args[0]))
 	}
-	bucket := os.Args[1]
+	pairName := os.Args[1]
 
 	// Initialize a session that the SDK will use to load configuration,
 	// credentials, and region from the shared config file. (~/.aws/config).
@@ -40,27 +43,21 @@ func main() {
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
-	// Create S3 service client
-	svc := s3.New(sess)
+	// Create an EC2 service client.
+	svc := ec2.New(sess)
 
-	// Create the S3 Bucket
-	_, err := svc.CreateBucket(&s3.CreateBucketInput{
-		Bucket: aws.String(bucket),
+	// Delete the key pair by name
+	_, err := svc.DeleteKeyPair(&ec2.DeleteKeyPairInput{
+		KeyName: aws.String(pairName),
 	})
 	if err != nil {
-		exitErrorf("Unable to create bucket %q, %v", bucket, err)
+		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == "InvalidKeyPair.Duplicate" {
+			exitErrorf("Key pair %q does not exist.", pairName)
+		}
+		exitErrorf("Unable to delete key pair: %s, %v.", pairName, err)
 	}
 
-	// Wait until bucket is created before finishing
-	fmt.Printf("Waiting for bucket %q to be created...\n", bucket)
-	err = svc.WaitUntilBucketExists(&s3.HeadBucketInput{
-		Bucket: aws.String(bucket),
-	})
-	if err != nil {
-		exitErrorf("Error occurred while waiting for bucket to be created, %v", bucket)
-	}
-
-	fmt.Printf("Bucket %q successfully created\n", bucket)
+	fmt.Printf("Successfully deleted %q key pair\n", pairName)
 }
 
 func exitErrorf(msg string, args ...interface{}) {
