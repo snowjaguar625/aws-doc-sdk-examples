@@ -15,24 +15,32 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/sqs"
 )
 
-// Creates an S3 Bucket in the region configured in the shared config
-// or AWS_REGION environment variable.
+// Creates a new SQS queue with long polling enabled. If the Queue already exists
+// no error will be returned.
 //
 // Usage:
-//    go run s3_create_bucket BUCKET_NAME
+//    go run sqs_longpolling_create_queue.go -n queue_name -t timeout
 func main() {
-	if len(os.Args) != 2 {
-		exitErrorf("bucket name required\nUsage: %s bucket_name", os.Args[0])
+	var name string
+	var timeout int
+	flag.StringVar(&name, "n", "", "Queue name")
+	flag.IntVar(&timeout, "t", 20, "(Optional) Timeout in seconds for long polling")
+	flag.Parse()
+
+	if len(name) == 0 {
+		flag.PrintDefaults()
+		exitErrorf("Queue name required")
 	}
-	bucket := os.Args[1]
 
 	// Initialize a session that the SDK will use to load configuration,
 	// credentials, and region from the shared config file. (~/.aws/config).
@@ -40,27 +48,22 @@ func main() {
 		SharedConfigState: session.SharedConfigEnable,
 	}))
 
-	// Create S3 service client
-	svc := s3.New(sess)
+	// Create a SQS service client.
+	svc := sqs.New(sess)
 
-	// Create the S3 Bucket
-	_, err := svc.CreateBucket(&s3.CreateBucketInput{
-		Bucket: aws.String(bucket),
+	// Create the Queue with long polling enabled
+	result, err := svc.CreateQueue(&sqs.CreateQueueInput{
+		QueueName: aws.String(name),
+		Attributes: aws.StringMap(map[string]string{
+			"ReceiveMessageWaitTimeSeconds": strconv.Itoa(timeout),
+		}),
 	})
 	if err != nil {
-		exitErrorf("Unable to create bucket %q, %v", bucket, err)
+		exitErrorf("Unable to create queue %q, %v.", name, err)
 	}
 
-	// Wait until bucket is created before finishing
-	fmt.Printf("Waiting for bucket %q to be created...\n", bucket)
-	err = svc.WaitUntilBucketExists(&s3.HeadBucketInput{
-		Bucket: aws.String(bucket),
-	})
-	if err != nil {
-		exitErrorf("Error occurred while waiting for bucket to be created, %v", bucket)
-	}
-
-	fmt.Printf("Bucket %q successfully created\n", bucket)
+	fmt.Printf("Succesffuly created queue %q. URL: %s\n", name,
+		aws.StringValue(result.QueueUrl))
 }
 
 func exitErrorf(msg string, args ...interface{}) {

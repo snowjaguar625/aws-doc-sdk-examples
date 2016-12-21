@@ -17,20 +17,26 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-// Creates an S3 Bucket in the region configured in the shared config
-// or AWS_REGION environment variable.
+// Deletes the bucket's website configuration. Allows setting the index suffix,
+// and an optional error page keys. If the bucket does not have a website
+// configuration no error will be returned.
+//
+// If the bucket already has a website configured on it this will overwrite
+// that configuration
 //
 // Usage:
-//    go run s3_create_bucket BUCKET_NAME
+//    go run s3_delete_bucket_website.go BUCKET_NAME
 func main() {
 	if len(os.Args) != 2 {
-		exitErrorf("bucket name required\nUsage: %s bucket_name", os.Args[0])
+		exitErrorf("bucket name required\nUsage: %s bucket_name",
+			filepath.Base(os.Args[0]))
 	}
 	bucket := os.Args[1]
 
@@ -43,24 +49,18 @@ func main() {
 	// Create S3 service client
 	svc := s3.New(sess)
 
-	// Create the S3 Bucket
-	_, err := svc.CreateBucket(&s3.CreateBucketInput{
+	// Deletes the website configuration on the bucket. Will return successfully
+	// when the website configuration was deleted, or if the bucket does not
+	// have a website configuration.
+	_, err := svc.DeleteBucketWebsite(&s3.DeleteBucketWebsiteInput{
 		Bucket: aws.String(bucket),
 	})
 	if err != nil {
-		exitErrorf("Unable to create bucket %q, %v", bucket, err)
+		exitErrorf("Unable to delete bucket %q website configuration, %v",
+			bucket, err)
 	}
 
-	// Wait until bucket is created before finishing
-	fmt.Printf("Waiting for bucket %q to be created...\n", bucket)
-	err = svc.WaitUntilBucketExists(&s3.HeadBucketInput{
-		Bucket: aws.String(bucket),
-	})
-	if err != nil {
-		exitErrorf("Error occurred while waiting for bucket to be created, %v", bucket)
-	}
-
-	fmt.Printf("Bucket %q successfully created\n", bucket)
+	fmt.Printf("Successfully delete bucket %q website configuration\n", bucket)
 }
 
 func exitErrorf(msg string, args ...interface{}) {

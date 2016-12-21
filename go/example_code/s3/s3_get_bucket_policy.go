@@ -15,22 +15,27 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-// Creates an S3 Bucket in the region configured in the shared config
-// or AWS_REGION environment variable.
+// Prints the policy for a bucket. If the bucket doesn't exist, or there was
+// and error an error message will be printed instead.
 //
 // Usage:
-//    go run s3_create_bucket BUCKET_NAME
+//    go run s3_get_bucket_policy.go BUCKET_NAME
 func main() {
 	if len(os.Args) != 2 {
-		exitErrorf("bucket name required\nUsage: %s bucket_name", os.Args[0])
+		exitErrorf("bucket name required\nUsage: %s bucket_name",
+			filepath.Base(os.Args[0]))
 	}
 	bucket := os.Args[1]
 
@@ -43,24 +48,32 @@ func main() {
 	// Create S3 service client
 	svc := s3.New(sess)
 
-	// Create the S3 Bucket
-	_, err := svc.CreateBucket(&s3.CreateBucketInput{
+	// Call S3 to retrieve the policy for the selected bucket.
+	result, err := svc.GetBucketPolicy(&s3.GetBucketPolicyInput{
 		Bucket: aws.String(bucket),
 	})
 	if err != nil {
-		exitErrorf("Unable to create bucket %q, %v", bucket, err)
+		// Special error handling for the when the bucket doesn't
+		// exists so we can give a more direct error message from the CLI.
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case "NoSuchBucket":
+				exitErrorf("Bucket %q does not exist.", bucket)
+			case "NoSuchBucketPolicy":
+				exitErrorf("Bucket %q does not have a policy.", bucket)
+			}
+		}
+		exitErrorf("Unable to get bucket %q policy, %v.", bucket, err)
 	}
 
-	// Wait until bucket is created before finishing
-	fmt.Printf("Waiting for bucket %q to be created...\n", bucket)
-	err = svc.WaitUntilBucketExists(&s3.HeadBucketInput{
-		Bucket: aws.String(bucket),
-	})
-	if err != nil {
-		exitErrorf("Error occurred while waiting for bucket to be created, %v", bucket)
+	out := bytes.Buffer{}
+	policyStr := aws.StringValue(result.Policy)
+	if err := json.Indent(&out, []byte(policyStr), "", "  "); err != nil {
+		exitErrorf("Failed to pretty print bucket policy, %v.", err)
 	}
 
-	fmt.Printf("Bucket %q successfully created\n", bucket)
+	fmt.Printf("%q's Bucket Policy:\n", bucket)
+	fmt.Println(out.String())
 }
 
 func exitErrorf(msg string, args ...interface{}) {
