@@ -17,17 +17,26 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 )
 
-// Prints out the Elastic IP Addresses for the account's VPC.
+// Describes the security groups by IDs that are passed into the CLI. Takes
+// a space separated list of group IDs as input.
 //
 // Usage:
-//    go run ec2_describe_addresses.go BUCKET_NAME
+//    go run ec2_describe_security_groups.go groupId1 groupId2 ...
 func main() {
+	if len(os.Args) < 2 {
+		exitErrorf("Security Group ID required\nUsage: %s group_id ...",
+			filepath.Base(os.Args[0]))
+	}
+	groupIds := os.Args[1:]
+
 	// Initialize a session that the SDK will use to load configuration,
 	// credentials, and region from the shared config file. (~/.aws/config).
 	sess := session.Must(session.NewSessionWithOptions(session.Options{
@@ -37,38 +46,26 @@ func main() {
 	// Create an EC2 service client.
 	svc := ec2.New(sess)
 
-	// Make the API request to EC2 filtering for the addresses in the
-	// account's VPC.
-	result, err := svc.DescribeAddresses(&ec2.DescribeAddressesInput{
-		Filters: []*ec2.Filter{
-			{
-				Name:   aws.String("domain"),
-				Values: aws.StringSlice([]string{"vpc"}),
-			},
-		},
+	// Retrieve the security group descriptions
+	result, err := svc.DescribeSecurityGroups(&ec2.DescribeSecurityGroupsInput{
+		GroupIds: aws.StringSlice(groupIds),
 	})
 	if err != nil {
-		exitErrorf("Unable to elastic IP address, %v", err)
-	}
-
-	// Printout the IP addresses if there are any.
-	if len(result.Addresses) == 0 {
-		fmt.Printf("No elastic IPs for %s region\n", *svc.Config.Region)
-	} else {
-		fmt.Println("Elastic IPs")
-		for _, addr := range result.Addresses {
-			fmt.Println("*", fmtAddress(addr))
+		if aerr, ok := err.(awserr.Error); ok {
+			switch aerr.Code() {
+			case "InvalidGroupId.Malformed":
+				fallthrough
+			case "InvalidGroup.NotFound":
+				exitErrorf("%s.", aerr.Message())
+			}
 		}
+		exitErrorf("Unable to get descriptions for security groups, %v", err)
 	}
-}
 
-func fmtAddress(addr *ec2.Address) string {
-	out := fmt.Sprintf("IP: %s,  allocation id: %s",
-		aws.StringValue(addr.PublicIp), aws.StringValue(addr.AllocationId))
-	if addr.InstanceId != nil {
-		out += fmt.Sprintf(", instance-id: %s", *addr.InstanceId)
+	fmt.Println("Security Group:")
+	for _, group := range result.SecurityGroups {
+		fmt.Println(group)
 	}
-	return out
 }
 
 func exitErrorf(msg string, args ...interface{}) {
