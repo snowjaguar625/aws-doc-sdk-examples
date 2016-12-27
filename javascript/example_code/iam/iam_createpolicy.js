@@ -26,7 +26,7 @@ var myManagedPolicy = {
         {
             "Effect": "Allow",
             "Action": "logs:CreateLogGroup",
-            "Resource": "RESOURCE_ARN"
+            "Resource": "arn:aws:logs:us-west-2:617985816162:*"
         },
         {
             "Effect": "Allow",
@@ -37,7 +37,7 @@ var myManagedPolicy = {
                 "dynamodb:Scan",
                 "dynamodb:UpdateItem"
             ],
-            "Resource": "RESOURCE_ARN"
+            "Resource": "arn:aws:dynamodb:us-west-2:617985816162:table/*"
         }
     ]
 };
@@ -49,8 +49,8 @@ var params = {
 
 iam.createPolicy(params, function(err, data) {
   if (err) {
-    throw err;
+    console.log("Error", err);
   } else {
-    console.log("New Policy: ", data);
+    console.log("Success", data);
   }
 });

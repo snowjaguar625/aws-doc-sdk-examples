@@ -27,8 +27,8 @@ var params = {
 
 iam.updateServerCertificate(params, function(err, data) {
   if (err) {
-    throw err;
+    console.log("Error", err);
   } else {
-    console.log('Server Certificate updated.');
+    console.log("Success", data);
   }
 });

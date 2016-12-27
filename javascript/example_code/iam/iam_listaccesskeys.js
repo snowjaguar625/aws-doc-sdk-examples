@@ -27,7 +27,7 @@ var params = {
 
 iam.listAccessKeys(params, function(err, data) {
   if (err) {
-    throw err;
+    console.log("Error", err);
   } else {
     console.log("Success", data);
   }

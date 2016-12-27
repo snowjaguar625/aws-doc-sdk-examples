@@ -28,9 +28,6 @@ iam.listUsers(params, function(err, data) {
   if (err) {
     console.log("Error", err);
   } else {
-    var users = data.Users || [];
-    users.forEach(function(user) {
-      console.log("User " + user.UserName + " created", user.CreateDate);
-    });
+    console.log("User " + data.Users[0].UserName + " created", data.Users[0].CreateDate);
   }
 });

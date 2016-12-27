@@ -22,8 +22,8 @@ var iam = new AWS.IAM({apiVersion: '2010-05-08'});
 
 iam.deleteServerCertificate({ServerCertificateName: 'CERTIFICATE_NAME'}, function(err, data) {
   if (err) {
-    throw err;
+    console.log("Error", err);
   } else {
-    console.log('Server Certificate deleted.');
+    console.log("Success", data);
   }
 });

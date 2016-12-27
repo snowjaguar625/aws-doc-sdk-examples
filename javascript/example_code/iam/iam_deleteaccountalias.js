@@ -22,8 +22,8 @@ var iam = new AWS.IAM({apiVersion: '2010-05-08'});
 
 iam.deleteAccountAlias({AccountAlias: process.argv[2]}, function(err, data) {
   if (err) {
-    throw err;
+    console.log("Error", err);
   } else {
-    console.log('Account alias ' + process.argv[2] + ' deleted.');
+    console.log("Success", data);
   }
 });

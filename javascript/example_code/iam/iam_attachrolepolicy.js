@@ -24,32 +24,26 @@ var paramsRoleList = {
   RoleName: process.argv[2]
 };
 
-var policyName = 'AmazonDynamoDBFullAccess';
-var policyArn = 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess';
-
-iam.listAttachedRolePolicies(paramsRoleList).eachPage(function(err, data) {
+iam.listAttachedRolePolicies(paramsRoleList, function(err, data) {
   if (err) {
-    throw err;
-  }
-  if (data && data.AttachedPolicies) {
-    data.AttachedPolicies.forEach(function(rolePolicy) {
-      if (rolePolicy.PolicyName === policyName) {
-        console.log(policyName + ' is already attached to this role.');
+    console.log("Error", err);
+  } else {
+    var myRolePolicies = data.AttachedPolicies;
+    myRolePolicies.forEach(function (val, index, array) {
+      if (myRolePolicies[index].PolicyName === 'AmazonDynamoDBFullAccess') {
+        console.log("AmazonDynamoDBFullAccess is already attached to this role.")
         process.exit();
       }
     });
-  } else {
-    // there are no more results when data is null
     var params = {
-      PolicyArn: policyArn,
+      PolicyArn: 'arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess',
       RoleName: process.argv[2]
     };
     iam.attachRolePolicy(params, function(err, data) {
       if (err) {
-        console.error('Unable to attach policy to role.');
-        throw err;
+        console.log("Unable to attach policy to role", err);
       } else {
-        console.log('Role attached successfully.');
+        console.log("Role attached successfully");
       }
     });
   }
