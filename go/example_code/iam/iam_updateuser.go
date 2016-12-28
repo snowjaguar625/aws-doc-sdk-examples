@@ -23,7 +23,7 @@ import (
 )
 
 // Usage:
-// go run iam_createaccountalias.go <alias>
+// go run iam_updateuser.go <current username> <new username>
 func main() {
 	// Initialize a session that the SDK will use to load configuration,
 	// credentials, and region from the shared config file. (~/.aws/config).
@@ -34,8 +34,9 @@ func main() {
 	// Create a IAM service client.
 	svc := iam.New(sess)
 
-	_, err := svc.CreateAccountAlias(&iam.CreateAccountAliasInput{
-		AccountAlias: &os.Args[1],
+	result, err := svc.UpdateUser(&iam.UpdateUserInput{
+		UserName:    &os.Args[1],
+		NewUserName: &os.Args[2],
 	})
 
 	if err != nil {
@@ -43,5 +44,5 @@ func main() {
 		return
 	}
 
-	fmt.Println(fmt.Sprintf("Account alias %s has been created", os.Args[1]))
+	fmt.Println("Success", result)
 }
