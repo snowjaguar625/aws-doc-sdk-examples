@@ -2,14 +2,15 @@ package main
 
 import (
 	"fmt"
+	"os"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/iam"
 )
 
 // Usage:
-// go run iam_accesskeylastused.go
+// go run iam_deleteuser.go <username>
 func main() {
 	// Initialize a session that the SDK will use to load configuration,
 	// credentials, and region from the shared config file. (~/.aws/config).
@@ -20,14 +21,18 @@ func main() {
 	// Create a IAM service client.
 	svc := iam.New(sess)
 
-	result, err := svc.GetAccessKeyLastUsed(&iam.GetAccessKeyLastUsedInput{
-		AccessKeyId: aws.String("ACCESS_KEY_ID"),
+	_, err := svc.DeleteUser(&iam.DeleteUserInput{
+		UserName: &os.Args[1],
 	})
 
-	if err != nil {
+	// If the user does not exist than we will log an error.
+	if awserr, ok := err.(awserr.Error); ok && awserr.Code() == "NoSuchEntity" {
+		fmt.Println(fmt.Sprintf("User %s does not exist", os.Args[1]))
+		return
+	} else if err != nil {
 		fmt.Println("Error", err)
 		return
 	}
 
-	fmt.Println("Success", *result.AccessKeyLastUsed)
+	fmt.Println(fmt.Sprintf("User %s has been deleted", os.Args[1]))
 }
