@@ -33,6 +33,6 @@ func main() {
 		if urls == nil {
 			continue
 		}
-		fmt.Printf("%d: %s\n", i, *urls)
+		fmt.Println(fmt.Sprintf("%d: %s", i, *urls))
 	}
 }
