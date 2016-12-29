@@ -14,27 +14,31 @@
  */
 
 require 'vendor/autoload.php';
-
-use Aws\S3\S3Client;
+use Aws\CloudWatch\CloudWatchClient;
 use Aws\Exception\AwsException;
 
 /**
- * List your Amazon S3 buckets.
+ * Enable Alarm actions in CloudWatch
  *
  * This code expects that you have AWS credentials set up per:
- * http://docs.aws.amazon.com/aws-sdk-php/v2/guide/credentials.html
+ * http://docs.aws.amazon.com/aws-sdk-php/v3/guide/guide/credentials.html
  */
 
-$BUCKET_NAME='<BUCKET-NAME>';
+$ALARM_NAME = "<ALARM_NAME>";
 
-//Create a S3Client
-$s3Client = new S3Client([
-    'region' => 'us-west-2',
-    'version' => '2006-03-01'
+$client = CloudWatchClient::factory([
+        'profile' => 'default',
+        'region'  => 'us-west-2',
+        'version' => '2010-08-01'
 ]);
 
-//Listing all S3 Bucket
-$buckets = $s3Client->listBuckets();
-foreach ($buckets['Buckets'] as $bucket){
-	echo $bucket['Name']."\n";
+try {
+    $result = $client->enableAlarmActions([
+        'AlarmNames' => array($ALARM_NAME) //REQUIRED
+    ]);
+    var_dump($result);
+}catch (AwsException $e) {
+    // output error message if fails
+    echo $e->getMessage();
+    echo "\n";
 }
