@@ -35,63 +35,60 @@ int main(int argc, char** argv)
     Aws::SDKOptions options;
     Aws::InitAPI(options);
 
+    Aws::CloudWatch::CloudWatchClient cw_client;
+
+    Aws::CloudWatch::Model::ListMetricsRequest listMetricsRequest;
+    if (argc > 1)
     {
-        Aws::CloudWatch::CloudWatchClient cw_client;
+        listMetricsRequest.SetMetricName(argv[1]);
+    }
 
-        Aws::CloudWatch::Model::ListMetricsRequest listMetricsRequest;
-        if (argc > 1)
+    if (argc > 2)
+    {
+        listMetricsRequest.SetNamespace(argv[2]);
+    }
+
+    bool done = false;
+    bool header = false;
+    while(!done)
+    {
+        auto listMetricsOutcome = cw_client.ListMetrics(listMetricsRequest);
+        if(!listMetricsOutcome.IsSuccess())
         {
-            listMetricsRequest.SetMetricName(argv[1]);
+            std::cout << "Failed to list cloudwatch metrics:" << listMetricsOutcome.GetError().GetMessage() << std::endl;
+            break;
         }
 
-        if (argc > 2)
+        if(!header)
         {
-            listMetricsRequest.SetNamespace(argv[2]);
+            std::cout << std::left << std::setw(48) << "MetricName" 
+                                   << std::setw(32) << "Namespace" 
+                                   << "DimensionNameValuePairs" << std::endl;
+            header = true;
         }
 
-        bool done = false;
-        bool header = false;
-        while (!done)
+        const auto& metrics = listMetricsOutcome.GetResult().GetMetrics();
+        for (const auto& metric : metrics)
         {
-            auto listMetricsOutcome = cw_client.ListMetrics(listMetricsRequest);
-            if (!listMetricsOutcome.IsSuccess())
+            std::cout << std::left << std::setw(48) << metric.GetMetricName() 
+                                   << std::setw(32) << metric.GetNamespace();
+            const auto& dimensions = metric.GetDimensions();
+            for (auto iter = dimensions.cbegin(); iter != dimensions.cend(); ++iter)
             {
-                std::cout << "Failed to list cloudwatch metrics:" << listMetricsOutcome.GetError().GetMessage() <<
-                std::endl;
-                break;
-            }
-
-            if (!header)
-            {
-                std::cout << std::left << std::setw(48) << "MetricName"
-                << std::setw(32) << "Namespace"
-                << "DimensionNameValuePairs" << std::endl;
-                header = true;
-            }
-
-            const auto &metrics = listMetricsOutcome.GetResult().GetMetrics();
-            for (const auto &metric : metrics)
-            {
-                std::cout << std::left << std::setw(48) << metric.GetMetricName()
-                << std::setw(32) << metric.GetNamespace();
-                const auto &dimensions = metric.GetDimensions();
-                for (auto iter = dimensions.cbegin(); iter != dimensions.cend(); ++iter)
+                const auto& dimkv = *iter;
+                std::cout << dimkv.GetName() << " = " << dimkv.GetValue();
+                if(iter + 1 != dimensions.cend())
                 {
-                    const auto &dimkv = *iter;
-                    std::cout << dimkv.GetName() << " = " << dimkv.GetValue();
-                    if (iter + 1 != dimensions.cend())
-                    {
-                        std::cout << ", ";
-                    }
+                    std::cout << ", ";
                 }
-
-                std::cout << std::endl;
             }
 
-            const auto &nextToken = listMetricsOutcome.GetResult().GetNextToken();
-            listMetricsRequest.SetNextToken(nextToken);
-            done = nextToken.empty();
+            std::cout << std::endl;
         }
+
+        const auto& nextToken = listMetricsOutcome.GetResult().GetNextToken();
+        listMetricsRequest.SetNextToken(nextToken);
+        done = nextToken.empty();
     }
 
     Aws::ShutdownAPI(options);

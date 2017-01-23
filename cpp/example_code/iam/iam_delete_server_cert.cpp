@@ -35,22 +35,19 @@ int main(int argc, char** argv)
     Aws::SDKOptions options;
     Aws::InitAPI(options);
 
+    Aws::IAM::IAMClient iamClient;
+
+    Aws::IAM::Model::DeleteServerCertificateRequest deleteServerCertificateRequest;
+    deleteServerCertificateRequest.SetServerCertificateName(certName);
+
+    auto deleteServerCertificateOutcome = iamClient.DeleteServerCertificate(deleteServerCertificateRequest);
+    if(!deleteServerCertificateOutcome.IsSuccess())
     {
-        Aws::IAM::IAMClient iamClient;
-
-        Aws::IAM::Model::DeleteServerCertificateRequest deleteServerCertificateRequest;
-        deleteServerCertificateRequest.SetServerCertificateName(certName);
-
-        auto deleteServerCertificateOutcome = iamClient.DeleteServerCertificate(deleteServerCertificateRequest);
-        if (!deleteServerCertificateOutcome.IsSuccess())
-        {
-            std::cout << "Error deleting server certificate " << certName << ": " <<
-            deleteServerCertificateOutcome.GetError().GetMessage() << std::endl;
-        }
-        else
-        {
-            std::cout << "Successfully deleted server certificate " << certName << std::endl;
-        }
+        std::cout << "Error deleting server certificate " << certName << ": " << deleteServerCertificateOutcome.GetError().GetMessage() << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully deleted server certificate " << certName << std::endl;
     }
 
     Aws::ShutdownAPI(options);

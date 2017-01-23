@@ -27,37 +27,34 @@ int main(int argc, char** argv)
     Aws::SDKOptions options;
     Aws::InitAPI(options);
 
+    Aws::EC2::EC2Client ec2_client;
+
+    Aws::EC2::Model::DescribeAddressesRequest describeAddressesRequest;
+
+    auto describeAddressesOutcome = ec2_client.DescribeAddresses(describeAddressesRequest);
+    if(describeAddressesOutcome.IsSuccess())
     {
-        Aws::EC2::EC2Client ec2_client;
+        std::cout << std::left << std::setw(20) << "InstanceId" 
+                               << std::setw(15) << "Public IP"
+                               << std::setw(10) << "Domain"
+                               << std::setw(20) << "Allocation ID" 
+                               << std::setw(25) << "NIC ID" << std::endl;
 
-        Aws::EC2::Model::DescribeAddressesRequest describeAddressesRequest;
-
-        auto describeAddressesOutcome = ec2_client.DescribeAddresses(describeAddressesRequest);
-        if (describeAddressesOutcome.IsSuccess())
+        const auto& addresses = describeAddressesOutcome.GetResult().GetAddresses();
+        for(const auto& address : addresses)
         {
-            std::cout << std::left << std::setw(20) << "InstanceId"
-            << std::setw(15) << "Public IP"
-            << std::setw(10) << "Domain"
-            << std::setw(20) << "Allocation ID"
-            << std::setw(25) << "NIC ID" << std::endl;
+            Aws::String domainString = Aws::EC2::Model::DomainTypeMapper::GetNameForDomainType(address.GetDomain());
 
-            const auto &addresses = describeAddressesOutcome.GetResult().GetAddresses();
-            for (const auto &address : addresses)
-            {
-                Aws::String domainString = Aws::EC2::Model::DomainTypeMapper::GetNameForDomainType(address.GetDomain());
-
-                std::cout << std::left << std::setw(20) << address.GetInstanceId()
-                << std::setw(15) << address.GetPublicIp()
-                << std::setw(10) << domainString
-                << std::setw(20) << address.GetAllocationId()
-                << std::setw(25) << address.GetNetworkInterfaceId() << std::endl;
-            }
+            std::cout << std::left << std::setw(20) << address.GetInstanceId() 
+                                   << std::setw(15) << address.GetPublicIp()
+                                   << std::setw(10) << domainString
+                                   << std::setw(20) << address.GetAllocationId() 
+                                   << std::setw(25) << address.GetNetworkInterfaceId() << std::endl;
         }
-        else
-        {
-            std::cout << "Failed to describe elastic ip addresses:" <<
-            describeAddressesOutcome.GetError().GetMessage() << std::endl;
-        }
+    }
+    else
+    {
+        std::cout << "Failed to describe elastic ip addresses:" << describeAddressesOutcome.GetError().GetMessage() << std::endl;
     }
 
     Aws::ShutdownAPI(options);

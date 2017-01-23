@@ -34,22 +34,19 @@ int main(int argc, char** argv)
     Aws::SDKOptions options;
     Aws::InitAPI(options);
 
+    Aws::IAM::IAMClient iamClient;
+
+    Aws::IAM::Model::CreateAccountAliasRequest createAccountAliasRequest;
+    createAccountAliasRequest.SetAccountAlias(aliasName);
+
+    auto createAccountAliasOutcome = iamClient.CreateAccountAlias(createAccountAliasRequest);
+    if(!createAccountAliasOutcome.IsSuccess())
     {
-        Aws::IAM::IAMClient iamClient;
-
-        Aws::IAM::Model::CreateAccountAliasRequest createAccountAliasRequest;
-        createAccountAliasRequest.SetAccountAlias(aliasName);
-
-        auto createAccountAliasOutcome = iamClient.CreateAccountAlias(createAccountAliasRequest);
-        if (!createAccountAliasOutcome.IsSuccess())
-        {
-            std::cout << "Error creating account alias " << aliasName << ": " <<
-            createAccountAliasOutcome.GetError().GetMessage() << std::endl;
-        }
-        else
-        {
-            std::cout << "Successfully created account alias " << aliasName << std::endl;
-        }
+        std::cout << "Error creating account alias " << aliasName << ": " << createAccountAliasOutcome.GetError().GetMessage() << std::endl;
+    }
+    else
+    {
+        std::cout << "Successfully created account alias " << aliasName << std::endl;
     }
 
     Aws::ShutdownAPI(options);

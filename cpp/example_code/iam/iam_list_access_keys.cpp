@@ -37,51 +37,48 @@ int main(int argc, char** argv)
     Aws::SDKOptions options;
     Aws::InitAPI(options);
 
+    Aws::IAM::IAMClient iam_client;
+
+    Aws::IAM::Model::ListAccessKeysRequest listAccessKeysRequest;
+    listAccessKeysRequest.SetUserName(userName);
+
+    bool done = false;
+    bool header = false;
+    while(!done)
     {
-        Aws::IAM::IAMClient iam_client;
-
-        Aws::IAM::Model::ListAccessKeysRequest listAccessKeysRequest;
-        listAccessKeysRequest.SetUserName(userName);
-
-        bool done = false;
-        bool header = false;
-        while (!done)
+        auto listAccessKeysOutcome = iam_client.ListAccessKeys(listAccessKeysRequest);
+        if(!listAccessKeysOutcome.IsSuccess())
         {
-            auto listAccessKeysOutcome = iam_client.ListAccessKeys(listAccessKeysRequest);
-            if (!listAccessKeysOutcome.IsSuccess())
-            {
-                std::cout << "Failed to list access keys for user " << userName << ": " <<
-                listAccessKeysOutcome.GetError().GetMessage() << std::endl;
-                break;
-            }
+            std::cout << "Failed to list access keys for user " << userName <<": " << listAccessKeysOutcome.GetError().GetMessage() << std::endl;
+            break;
+        }
 
-            if (!header)
-            {
-                std::cout << std::left << std::setw(32) << "UserName"
-                << std::setw(30) << "KeyID"
-                << std::setw(20) << "Status"
-                << std::setw(20) << "CreateDate" << std::endl;
-                header = true;
-            }
+        if(!header)
+        {
+            std::cout << std::left << std::setw(32) << "UserName" 
+                                   << std::setw(30) << "KeyID" 
+                                   << std::setw(20) << "Status" 
+                                   << std::setw(20) << "CreateDate" << std::endl;
+            header = true;
+        }
 
-            const auto &keys = listAccessKeysOutcome.GetResult().GetAccessKeyMetadata();
-            for (const auto &key : keys)
-            {
-                Aws::String statusString = Aws::IAM::Model::StatusTypeMapper::GetNameForStatusType(key.GetStatus());
-                std::cout << std::left << std::setw(32) << key.GetUserName()
-                << std::setw(30) << key.GetAccessKeyId()
-                << std::setw(20) << statusString
-                << std::setw(20) << key.GetCreateDate().ToGmtString(SIMPLE_DATE_FORMAT_STR) << std::endl;
-            }
+        const auto& keys = listAccessKeysOutcome.GetResult().GetAccessKeyMetadata();
+        for (const auto& key : keys)
+        {
+            Aws::String statusString = Aws::IAM::Model::StatusTypeMapper::GetNameForStatusType(key.GetStatus());
+            std::cout << std::left << std::setw(32) << key.GetUserName() 
+                                   << std::setw(30) << key.GetAccessKeyId()
+                                   << std::setw(20) << statusString
+                                   << std::setw(20) << key.GetCreateDate().ToGmtString(SIMPLE_DATE_FORMAT_STR) << std::endl;
+        }
 
-            if (listAccessKeysOutcome.GetResult().GetIsTruncated())
-            {
-                listAccessKeysRequest.SetMarker(listAccessKeysOutcome.GetResult().GetMarker());
-            }
-            else
-            {
-                done = true;
-            }
+        if(listAccessKeysOutcome.GetResult().GetIsTruncated())
+        {
+            listAccessKeysRequest.SetMarker(listAccessKeysOutcome.GetResult().GetMarker());
+        }
+        else
+        {
+            done = true;
         }
     }
 
