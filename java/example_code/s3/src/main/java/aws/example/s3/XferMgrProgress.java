@@ -26,6 +26,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
+
 public class XferMgrProgress
 {
     // waits for the transfer to complete, catching any exceptions that occur.
@@ -55,9 +56,10 @@ public class XferMgrProgress
         // update the progress bar while the xfer is ongoing.
         do {
             try {
+                // wait a bit.
                 Thread.sleep(100);
             } catch (InterruptedException e) {
-                return;
+               return;
             }
             // Note: so_far and total aren't used, they're just for
             // documentation purposes.
@@ -118,8 +120,7 @@ public class XferMgrProgress
         final String empty_bar = "                                        ";
         final String filled_bar = "########################################";
         int amt_full = (int)(bar_size * (pct / 100.0));
-        System.out.format("  [%s%s]", filled_bar.substring(0, amt_full),
-              empty_bar.substring(0, bar_size - amt_full));
+        System.out.format("  [%s%s]", filled_bar.substring(0, amt_full), empty_bar.substring(0, bar_size - amt_full));
     }
 
     // erases the progress bar.
@@ -250,8 +251,7 @@ public class XferMgrProgress
             System.exit(1);
         }
         else if (f.isDirectory()) {
-            uploadDirWithSubprogress(local_path, bucket_name, key_prefix,
-                  recursive, pause);
+            uploadDirWithSubprogress(local_path, bucket_name, key_prefix, recursive, pause);
         } else {
             uploadFileWithListener(local_path, bucket_name, key_prefix, pause);
         }

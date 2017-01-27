@@ -12,10 +12,8 @@
    specific language governing permissions and limitations under the License.
 */
 package aws.example.s3;
-import aws.example.s3.XferMgrProgress;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.s3.transfer.Copy;
 import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.AmazonServiceException;
 
 /**
  * Copy an object from one Amazon S3 bucket to another using S3 TransferManager.
@@ -34,16 +32,14 @@ public class XferMgrCopy
 
         TransferManager xfer_mgr = new TransferManager();
         try {
-            Copy xfer = xfer_mgr.copy(from_bucket, from_key, to_bucket, to_key);
-            // loop with Transfer.isDone()
-            XferMgrProgress.showTransferProgress(xfer);
-            // or block with Transfer.waitForCompletion()
-            XferMgrProgress.waitForCompletion(xfer);
+            xfer_mgr.copy(from_bucket, from_key, to_bucket, to_key);
         } catch (AmazonServiceException e) {
             System.err.println(e.getErrorMessage());
             System.exit(1);
         }
         xfer_mgr.shutdownNow();
+
+        System.out.println("Done!");
     }
 
     public static void main(String[] args)
