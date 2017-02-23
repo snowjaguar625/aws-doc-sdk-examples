@@ -1,5 +1,5 @@
 /*
-   Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+   Copyright 2010-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
    This file is licensed under the Apache License, Version 2.0 (the "License").
    You may not use this file except in compliance with the License. A copy of
@@ -38,24 +38,23 @@ int main(int argc, char** argv)
     std::cout << "Downloading " << key_name << " from S3 bucket: " <<
         bucket_name << std::endl;
 
-    {
-        Aws::S3::S3Client s3_client;
+    Aws::S3::S3Client s3_client;
 
-        Aws::S3::Model::GetObjectRequest object_request;
-        object_request.WithBucket(bucket_name).WithKey(key_name);
+    Aws::S3::Model::GetObjectRequest object_request;
+    object_request.WithBucket(bucket_name).WithKey(key_name);
 
-        auto get_object_outcome = s3_client.GetObject(object_request);
+    auto get_object_outcome = s3_client.GetObject(object_request);
 
-        if (get_object_outcome.IsSuccess()) {
-            Aws::OFStream local_file;
-            local_file.open(key_name.c_str(), std::ios::out | std::ios::binary);
-            local_file << get_object_outcome.GetResult().GetBody().rdbuf();
-            std::cout << "Done!" << std::endl;
-        } else {
-            std::cout << "GetObject error: " <<
-                get_object_outcome.GetError().GetExceptionName() << " " <<
-                get_object_outcome.GetError().GetMessage() << std::endl;
-        }
+    if(get_object_outcome.IsSuccess()) {
+        Aws::OFStream local_file;
+        local_file.open(key_name.c_str(), std::ios::out | std::ios::binary);
+        local_file << get_object_outcome.GetResult().GetBody().rdbuf();
+        std::cout << "Done!" << std::endl;
+    }
+    else {
+         std::cout << "GetObject error: " <<
+             get_object_outcome.GetError().GetExceptionName() << " " <<
+             get_object_outcome.GetError().GetMessage() << std::endl;
     }
 
     Aws::ShutdownAPI(options);
