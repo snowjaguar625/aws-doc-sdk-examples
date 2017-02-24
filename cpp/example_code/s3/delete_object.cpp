@@ -1,5 +1,5 @@
 /*
-   Copyright 2010-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+   Copyright 2010-2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
    This file is licensed under the Apache License, Version 2.0 (the "License").
    You may not use this file except in compliance with the License. A copy of
@@ -40,20 +40,21 @@ int main(int argc, char** argv)
     std::cout << "Deleting" << key_name << " from S3 bucket: " <<
         bucket_name << std::endl;
 
-    Aws::S3::S3Client s3_client;
+    {
+        Aws::S3::S3Client s3_client;
 
-    Aws::S3::Model::DeleteObjectRequest object_request;
-    object_request.WithBucket(bucket_name).WithKey(key_name);
+        Aws::S3::Model::DeleteObjectRequest object_request;
+        object_request.WithBucket(bucket_name).WithKey(key_name);
 
-    auto delete_object_outcome = s3_client.DeleteObject(object_request);
+        auto delete_object_outcome = s3_client.DeleteObject(object_request);
 
-    if(delete_object_outcome.IsSuccess()) {
-        std::cout << "Done!" << std::endl;
-    }
-    else {
-         std::cout << "DeleteObject error: " <<
-             delete_object_outcome.GetError().GetExceptionName() << " " <<
-             delete_object_outcome.GetError().GetMessage() << std::endl;
+        if (delete_object_outcome.IsSuccess()) {
+            std::cout << "Done!" << std::endl;
+        } else {
+            std::cout << "DeleteObject error: " <<
+                delete_object_outcome.GetError().GetExceptionName() << " " <<
+                delete_object_outcome.GetError().GetMessage() << std::endl;
+        }
     }
 
     Aws::ShutdownAPI(options);
