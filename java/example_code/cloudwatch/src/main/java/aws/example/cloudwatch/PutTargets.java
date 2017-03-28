@@ -12,7 +12,8 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package aws.example.cloudwatch;
+package cloudwatch.src.main.java.aws.example.cloudwatch;
+
 import com.amazonaws.services.cloudwatchevents.AmazonCloudWatchEvents;
 import com.amazonaws.services.cloudwatchevents.AmazonCloudWatchEventsClientBuilder;
 import com.amazonaws.services.cloudwatchevents.model.PutTargetsRequest;
@@ -27,10 +28,7 @@ public class PutTargets {
     public static void main(String[] args) {
 
         final String USAGE =
-            "To run this example, supply:\n" +
-            "* a rule name\n" +
-            "* lambda function arn\n" +
-            "* target id\n\n" +
+            "To run this example, supply a rule name, lambda function arn and target id\n" +
             "Ex: PutTargets <rule-name> <lambda-function-arn> <target-id>\n";
 
         if (args.length != 3) {
@@ -38,26 +36,22 @@ public class PutTargets {
             System.exit(1);
         }
 
-        String rule_name = args[0];
-        String function_arn = args[1];
-        String target_id = args[2];
+        String ruleName = args[0];
+        String lambdaFunctionArn = args[1];
+        String targetId = args[2];
 
-        final AmazonCloudWatchEvents cwe =
-            AmazonCloudWatchEventsClientBuilder.defaultClient();
+        final AmazonCloudWatchEvents cloudWatchEvents = AmazonCloudWatchEventsClientBuilder.defaultClient();
 
         Target target = new Target()
-            .withArn(function_arn)
-            .withId(target_id);
+            .withArn(lambdaFunctionArn)
+            .withId(targetId);
 
         PutTargetsRequest request = new PutTargetsRequest()
             .withTargets(target)
-            .withRule(rule_name);
+            .withRule(ruleName);
 
-        PutTargetsResult response = cwe.putTargets(request);
+        PutTargetsResult response = cloudWatchEvents.putTargets(request);
 
-        System.out.printf(
-            "Successfully created CloudWatch events target for rule %s",
-            rule_name);
+        System.out.printf("Successfully created CloudWatch events target for rule %s", ruleName);
     }
 }
-

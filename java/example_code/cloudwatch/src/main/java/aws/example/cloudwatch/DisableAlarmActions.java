@@ -12,7 +12,8 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package aws.example.cloudwatch;
+package cloudwatch.src.main.java.aws.example.cloudwatch;
+
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.cloudwatch.model.DisableAlarmActionsRequest;
@@ -36,16 +37,13 @@ public class DisableAlarmActions {
 
         String alarmName = args[0];
 
-        final AmazonCloudWatch cw =
-            AmazonCloudWatchClientBuilder.defaultClient();
+        final AmazonCloudWatch cloudWatch = AmazonCloudWatchClientBuilder.defaultClient();
 
         DisableAlarmActionsRequest request = new DisableAlarmActionsRequest()
             .withAlarmNames(alarmName);
 
-        DisableAlarmActionsResult response =
-            cw.disableAlarmActions(request);
+        DisableAlarmActionsResult response = cloudWatch.disableAlarmActions(request);
 
-        System.out.printf(
-            "Successfully disabled actions on alarm %s", alarmName);
+        System.out.printf("Successfully disabled actions on alarm %s", alarmName);
     }
 }

@@ -12,7 +12,8 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package aws.example.cloudwatch;
+package cloudwatch.src.main.java.aws.example.cloudwatch;
+
 import com.amazonaws.services.cloudwatch.AmazonCloudWatch;
 import com.amazonaws.services.cloudwatch.AmazonCloudWatchClientBuilder;
 import com.amazonaws.services.cloudwatch.model.DescribeAlarmsRequest;
@@ -26,15 +27,14 @@ public class DescribeAlarms {
 
     public static void main(String[] args) {
 
-        final AmazonCloudWatch cw =
-            AmazonCloudWatchClientBuilder.defaultClient();
+        final AmazonCloudWatch cloudWatch = AmazonCloudWatchClientBuilder.defaultClient();
 
         boolean done = false;
 
         while(!done) {
             DescribeAlarmsRequest request = new DescribeAlarmsRequest();
 
-            DescribeAlarmsResult response = cw.describeAlarms(request);
+            DescribeAlarmsResult response = cloudWatch.describeAlarms(request);
 
             for(MetricAlarm alarm : response.getMetricAlarms()) {
                 System.out.printf("Retrieved alarm %s", alarm.getAlarmName());
@@ -48,4 +48,3 @@ public class DescribeAlarms {
         }
     }
 }
-
