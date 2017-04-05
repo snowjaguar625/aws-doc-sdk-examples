@@ -42,7 +42,8 @@ public class DisableAlarmActions {
         DisableAlarmActionsRequest request = new DisableAlarmActionsRequest()
             .withAlarmNames(alarmName);
 
-        DisableAlarmActionsResult response = cw.disableAlarmActions(request);
+        DisableAlarmActionsResult response =
+            cw.disableAlarmActions(request);
 
         System.out.printf(
             "Successfully disabled actions on alarm %s", alarmName);

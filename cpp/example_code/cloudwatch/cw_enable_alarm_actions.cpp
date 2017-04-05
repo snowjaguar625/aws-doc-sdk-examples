@@ -12,9 +12,11 @@
    specific language governing permissions and limitations under the License.
 */
 #include <aws/core/Aws.h>
+
 #include <aws/monitoring/CloudWatchClient.h>
 #include <aws/monitoring/model/EnableAlarmActionsRequest.h>
 #include <aws/monitoring/model/PutMetricAlarmRequest.h>
+
 #include <iostream>
 
 void CreateAlarmAndEnableActions(

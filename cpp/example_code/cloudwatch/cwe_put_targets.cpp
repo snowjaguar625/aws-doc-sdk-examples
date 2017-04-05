@@ -53,8 +53,7 @@ int main(int argc, char** argv)
                 << rule_name << ": " <<
                 putTargetsOutcome.GetError().GetMessage() << std::endl;
         } else {
-            std::cout <<
-                "Successfully created cloudwatch events target for rule "
+            std::cout << "Successfully created cloudwatch events target for rule "
                 << rule_name << std::endl;
         }
     }
