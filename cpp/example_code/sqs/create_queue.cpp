@@ -28,8 +28,10 @@ int main(int argc, char** argv)
     }
 
     Aws::String queue_name = argv[1];
+
     Aws::SDKOptions options;
     Aws::InitAPI(options);
+
     {
         Aws::SQS::SQSClient sqs;
 
@@ -44,6 +46,7 @@ int main(int argc, char** argv)
             cq_out.GetError().GetMessage() << std::endl;
         }
     }
+
     Aws::ShutdownAPI(options);
     return 0;
 }

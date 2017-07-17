@@ -15,7 +15,7 @@ package aws.example.s3;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.AmazonS3Client;
 
 /**
 * Get the bucket policy from an existing S3 bucket.
@@ -45,7 +45,7 @@ public class DeleteBucketPolicy
 
       System.out.format("Deleting policy from bucket: \"%s\"\n\n", bucket_name);
 
-      final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+      final AmazonS3 s3 = new AmazonS3Client();
       try {
          s3.deleteBucketPolicy(bucket_name);
       } catch (AmazonServiceException e) {

@@ -13,8 +13,7 @@
 */
 package aws.example.dynamodb;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
 import java.util.HashMap;
@@ -83,7 +82,7 @@ public class GetItem
                 .withTableName(table_name);
         }
 
-        final AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.defaultClient();
+        final AmazonDynamoDBClient ddb = new AmazonDynamoDBClient();
 
         try {
             Map<String,AttributeValue> returned_item =

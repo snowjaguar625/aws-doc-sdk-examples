@@ -28,8 +28,10 @@ int main(int argc, char** argv)
     }
 
     Aws::String queue_url = argv[1];
+
     Aws::SDKOptions options;
     Aws::InitAPI(options);
+
     {
         // disable retries so that bad urls don't hang the exe via retry loop
         Aws::Client::ClientConfiguration client_cfg;
@@ -50,7 +52,9 @@ int main(int argc, char** argv)
                 dq_out.GetError().GetMessage() << std::endl;
         }
     }
+
     Aws::ShutdownAPI(options);
+
     return 0;
 }
 

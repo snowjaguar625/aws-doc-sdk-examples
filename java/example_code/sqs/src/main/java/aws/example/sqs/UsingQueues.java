@@ -12,13 +12,15 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package aws.example.sqs;
+package com.amazonaws;
+
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.AmazonSQSException;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.ListQueuesRequest;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
+
 import java.util.Date;
 
 public class UsingQueues
@@ -31,12 +33,12 @@ public class UsingQueues
         AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
 
         // Creating a Queue
-        CreateQueueRequest create_request = new CreateQueueRequest(QUEUE_NAME)
+        CreateQueueRequest cq_request = new CreateQueueRequest(QUEUE_NAME)
                 .addAttributesEntry("DelaySeconds", "60")
                 .addAttributesEntry("MessageRetentionPeriod", "86400");
 
         try {
-            sqs.createQueue(create_request);
+            sqs.createQueue(cq_request);
         } catch (AmazonSQSException e) {
             if (!e.getErrorCode().equals("QueueAlreadyExists")) {
                 throw e;

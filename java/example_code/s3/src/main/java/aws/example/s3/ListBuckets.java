@@ -12,8 +12,9 @@
    specific language governing permissions and limitations under the License.
 */
 package aws.example.s3;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.Bucket;
 import java.util.List;
 
@@ -27,9 +28,9 @@ public class ListBuckets
 {
     public static void main(String[] args)
     {
-    	  final AmazonS3 s3 = AmazonS3ClientBuilder.defaultClient();
+        final AmazonS3 s3 = new AmazonS3Client();
         List<Bucket> buckets = s3.listBuckets();
-        System.out.println("Your Amazon S3 buckets are:");
+        System.out.println("Your Amazon S3 buckets:");
         for (Bucket b : buckets) {
             System.out.println("* " + b.getName());
         }

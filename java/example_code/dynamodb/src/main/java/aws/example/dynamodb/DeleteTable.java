@@ -13,8 +13,7 @@
 */
 package aws.example.dynamodb;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
+import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 
 /**
  * Delete a DynamoDB table.
@@ -49,7 +48,7 @@ public class DeleteTable
 
         System.out.format("Deleting table %s...\n", table_name);
 
-        final AmazonDynamoDB ddb = AmazonDynamoDBClientBuilder.defaultClient();
+        final AmazonDynamoDBClient ddb = new AmazonDynamoDBClient();
 
         try {
             ddb.deleteTable(table_name);

@@ -12,50 +12,39 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package aws.example.sqs;
+package com.amazonaws;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.AmazonSQSException;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.SetQueueAttributesRequest;
+import java.util.Date;
 
 public class DeadLetterQueues
 {
+    private static final String DEAD_LETTER_QUEUE_NAME = "DLQueue" +
+        new Date().getTime();
+    private static final String SOURCE_QUEUE_NAME = "SrcQueue" +
+        new Date().getTime();
+
     public static void main(String[] args)
     {
-        if (args.length != 2) {
-            System.out.println(
-                "Usage: DeadLetterQueues <src_queue_name> <dl_queue_name>");
-            System.exit(1);
-        }
-
-        String src_queue_name = args[0];
-        String dl_queue_name = args[1];
-
         final AmazonSQS sqs = AmazonSQSClientBuilder.defaultClient();
 
-        // Create source queue
+        // Create deadLetter queue
         try {
-            sqs.createQueue(src_queue_name);
+            sqs.createQueue(DEAD_LETTER_QUEUE_NAME);
         } catch (AmazonSQSException e) {
             if (!e.getErrorCode().equals("QueueAlreadyExists")) {
                 throw e;
             }
         }
 
-        // Create dead-letter queue
-        try {
-            sqs.createQueue(dl_queue_name);
-        } catch (AmazonSQSException e) {
-            if (!e.getErrorCode().equals("QueueAlreadyExists")) {
-                throw e;
-            }
-        }
-
-        // Get dead-letter queue ARN
-        String dl_queue_url = sqs.getQueueUrl(dl_queue_name)
+        String dl_queue_url = sqs.getQueueUrl(DEAD_LETTER_QUEUE_NAME)
                                  .getQueueUrl();
+
+        System.out.println("Dead letter queue URL: " + dl_queue_url);
 
         GetQueueAttributesResult queue_attrs = sqs.getQueueAttributes(
                 new GetQueueAttributesRequest(dl_queue_url)
@@ -63,17 +52,27 @@ public class DeadLetterQueues
 
         String dl_queue_arn = queue_attrs.getAttributes().get("QueueArn");
 
-        // Set dead letter queue with redrive policy on source queue.
-        String src_queue_url = sqs.getQueueUrl(src_queue_name)
+        // Create source queue
+        try {
+            sqs.createQueue(SOURCE_QUEUE_NAME).getQueueUrl();
+        } catch (AmazonSQSException e) {
+            if (!e.getErrorCode().equals("QueueAlreadyExists")) {
+                throw e;
+            }
+        }
+
+        String src_queue_url = sqs.getQueueUrl(SOURCE_QUEUE_NAME)
                                   .getQueueUrl();
 
-        SetQueueAttributesRequest request = new SetQueueAttributesRequest()
+        System.out.println("Source queue URL: " + src_queue_url);
+
+        // Configuring source queue
+        SetQueueAttributesRequest sqa_request = new SetQueueAttributesRequest()
                 .withQueueUrl(src_queue_url)
                 .addAttributesEntry("RedrivePolicy",
                         "{\"maxReceiveCount\":\"5\", \"deadLetterTargetArn\":\""
                         + dl_queue_arn + "\"}");
-
-        sqs.setQueueAttributes(request);
+        sqs.setQueueAttributes(sqa_request);
     }
 }
 
