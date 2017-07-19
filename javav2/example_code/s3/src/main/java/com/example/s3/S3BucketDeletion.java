@@ -42,7 +42,7 @@ public class S3BucketDeletion {
 
         createBucket(bucket, region);
         // Delete empty bucket
-        deleteEmptyBucket(bucket);
+        deleteNonEmptyBucket(bucket);
 
 
         String bucket2 = "bucket" + System.currentTimeMillis();
@@ -66,7 +66,7 @@ public class S3BucketDeletion {
         } while (listObjectsV2Response.isTruncated());
 
         // Now the bucket is empty and we can delete it
-        deleteEmptyBucket(bucket2);
+        deleteNonEmptyBucket(bucket2);
     }
 
     private static void createBucket(String bucket, Region region) {
@@ -92,7 +92,7 @@ public class S3BucketDeletion {
         }
     }
 
-    private static void deleteEmptyBucket(String bucket) {
+    private static void deleteNonEmptyBucket(String bucket) {
         // Delete empty bucket
         DeleteBucketRequest deleteBucketRequest = DeleteBucketRequest.builder().bucket(bucket).build();
         s3.deleteBucket(deleteBucketRequest);
