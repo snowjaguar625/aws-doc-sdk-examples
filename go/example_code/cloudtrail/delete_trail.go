@@ -15,37 +15,42 @@
 package main
 
 import (
-    "github.com/aws/aws-sdk-go/aws"
-    "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/service/cloudtrail"
-
     "flag"
     "fmt"
     "os"
+
+    "github.com/aws/aws-sdk-go/aws"
+    "github.com/aws/aws-sdk-go/aws/session"
+    "github.com/aws/aws-sdk-go/service/cloudtrail"
 )
 
 func main() {
     // Trail name required
-    var trailName string
-    flag.StringVar(&trailName, "n", "", "The name of the trail to delete")
+    trailNamePtr := flag.String("n", "", "The name of the trail to delete")
+    // Optional region
+    regionPtr := flag.String("r", "us-west-2", "The region for the trail.")
 
     flag.Parse()
+
+    regionName := *regionPtr
+    trailName := *trailNamePtr
 
     if trailName == "" {
         fmt.Println("You must supply a trail name")
         os.Exit(1)
     }
 
-    // Initialize a session in us-west-2 that the SDK will use to load
-    // credentials from the shared credentials file ~/.aws/credentials.
+    // Initialize a session in us-west-2 that the SDK will use to load configuration,
+    // and credentials from the shared config file ~/.aws/config.
     sess, err := session.NewSession(&aws.Config{
-        Region: aws.String("us-west-2")},
+        Region: aws.String(regionName)},
     )
 
     // Create CloudTrail client
     svc := cloudtrail.New(sess)
 
     _, err = svc.DeleteTrail(&cloudtrail.DeleteTrailInput{Name: trailNamePtr})
+
     if err != nil {
         fmt.Println("Got error calling CreateTrail:")
         fmt.Println(err.Error())

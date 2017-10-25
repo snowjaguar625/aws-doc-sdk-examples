@@ -15,36 +15,40 @@
 package main
 
 import (
-    "github.com/aws/aws-sdk-go/aws"
-    "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/service/cloudtrail"
-
     "flag"
     "fmt"
     "os"
+
+    "github.com/aws/aws-sdk-go/aws"
+    "github.com/aws/aws-sdk-go/aws/session"
+    "github.com/aws/aws-sdk-go/service/cloudtrail"
     "time"
 )
 
 func main() {
     // Trail name required
-    var trailName string
-    flag.StringVar(&trailname, "n", "", "The name of the trail")
+    trailNamePtr := flag.String("n", "", "The name of the trail to delete")
+    // Optional region
+    regionPtr := flag.String("r", "us-west-2", "The region for the trail.")
 
     // Option to show event
-    var showEvent bool
-    flag.BoolVar (&showEvent, "s", false, "Whether to show the event")
+    showEventsPtr := flag.Bool("s", false, "Whether to show the event")
 
     flag.Parse()
+
+    regionName := *regionPtr
+    trailName := *trailNamePtr
+    showEvents := *showEventsPtr
 
     if trailName == "" {
         fmt.Println("You must supply a trail name")
         os.Exit(1)
     }
 
-    // Initialize a session in us-west-2 that the SDK will use to load
-    // credentials from the shared credentials file ~/.aws/credentials.
+    // Initialize a session in us-west-2 that the SDK will use to load configuration,
+    // and credentials from the shared config file ~/.aws/config.
     sess, err := session.NewSession(&aws.Config{
-        Region: aws.String("us-west-2")},
+        Region: aws.String(regionName)},
     )
 
     // Create CloudTrail client
@@ -53,6 +57,7 @@ func main() {
     input := &cloudtrail.LookupEventsInput{EndTime: aws.Time(time.Now())}
 
     resp, err := svc.LookupEvents(input)
+
     if err != nil {
         fmt.Println("Got error calling CreateTrail:")
         fmt.Println(err.Error())
@@ -63,24 +68,24 @@ func main() {
     fmt.Println("")
 
     for _, event := range resp.Events {
-        if showEvents {
-            fmt.Println("Event:")
-            fmt.Println(aws.StringValue(event.CloudTrailEvent))
-            fmt.Println("")
-        }
+		if showEvents {
+			fmt.Println("Event:")
+			fmt.Println(aws.StringValue(event.CloudTrailEvent))
+			fmt.Println("")
+		}
 
-        fmt.Println("Name    ", aws.StringValue(event.EventName))
-        fmt.Println("ID:     ", aws.StringValue(event.EventId))
-        fmt.Println("Time:   ", aws.TimeValue(event.EventTime))
-        fmt.Println("User:   ", aws.StringValue(event.Username))
+		fmt.Println("Name    ", aws.StringValue(event.EventName))
+		fmt.Println("ID:     ", aws.StringValue(event.EventId))
+		fmt.Println("Source: ", aws.StringValue(event.EventSource))
+		fmt.Println("Time:   ", aws.TimeValue(event.EventTime))
+		fmt.Println("User:   ", aws.StringValue(event.Username))
+		fmt.Println("Resourcs:")
 
-        fmt.Println("Resourcs:")
+		for _, resource := range event.Resources {
+			fmt.Println("  Name:", aws.StringValue(resource.ResourceName))
+			fmt.Println("  Type:", aws.StringValue(resource.ResourceType))
+		}
 
-        for _, resource := range event.Resources {
-            fmt.Println("  Name:", aws.StringValue(resource.ResourceName))
-            fmt.Println("  Type:", aws.StringValue(resource.ResourceType))
-        }
-
-        fmt.Println("")
+		fmt.Println("")
     }
 }

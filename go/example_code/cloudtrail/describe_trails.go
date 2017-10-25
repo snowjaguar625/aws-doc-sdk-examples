@@ -15,25 +15,34 @@
 package main
 
 import (
+    "flag"
+    "fmt"
+    "os"
+
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/service/cloudtrail"
-    
-    "fmt"
-    "os"
 )
 
 func main() {
-    // Initialize a session in us-west-2 that the SDK will use to load
-    // credentials from the shared credentials file ~/.aws/credentials.
+    // Optional region
+    regionPtr := flag.String("r", "us-west-2", "The region for the trail.")
+
+    flag.Parse()
+
+    regionName := *regionPtr
+
+    // Initialize a session in us-west-2 that the SDK will use to load configuration,
+    // and credentials from the shared config file ~/.aws/config.
     sess, err := session.NewSession(&aws.Config{
-        Region: aws.String("us-west-2")},
+        Region: aws.String(regionName)},
     )
 
     // Create CloudTrail client
     svc := cloudtrail.New(sess)
 
     resp, err := svc.DescribeTrails(&cloudtrail.DescribeTrailsInput{TrailNameList: nil})
+
     if err != nil {
         fmt.Println("Got error calling CreateTrail:")
         fmt.Println(err.Error())
@@ -44,8 +53,8 @@ func main() {
     fmt.Println("")
 
     for _, trail := range resp.TrailList {
-        fmt.Println("Trail name:  " + *trail.Name)
-        fmt.Println("Bucket name: " + *trail.S3BucketName)
-        fmt.Println("")
+		fmt.Println("Trail name:  " + *trail.Name)
+		fmt.Println("Bucket name: " + *trail.S3BucketName)
+		fmt.Println("")
     }
 }
