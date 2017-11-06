@@ -287,12 +287,8 @@ public class S3Encrypt
 
         s3Encryption.putObject(BUCKET_NAME, ENCRYPTED_KEY, "some contents");
         s3NonEncrypt.putObject(BUCKET_NAME, NON_ENCRYPTED_KEY, "some other contents");
-        try {
-            s3Encryption.getObjectAsString(BUCKET_NAME, NON_ENCRYPTED_KEY);
-        } catch (SecurityException e) {
-            // Strict authenticated encryption will throw an exception if an object is not encrypted with AES/GCM
-            System.err.println(NON_ENCRYPTED_KEY + " was not encrypted with AES/GCM");
-        }
+        System.out.println(s3Encryption.getObjectAsString(BUCKET_NAME, ENCRYPTED_KEY));
+        System.out.println(s3Encryption.getObjectAsString(BUCKET_NAME, NON_ENCRYPTED_KEY));
     }
 }
 
