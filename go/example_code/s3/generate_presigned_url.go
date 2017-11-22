@@ -11,30 +11,8 @@
    CONDITIONS OF ANY KIND, either express or implied. See the License for the
    specific language governing permissions and limitations under the License.
 */
-package main
 
-import (
-    "github.com/aws/aws-sdk-go/aws"
-    "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/service/s3"
-    "log"
-    "time"
-)
-
-// Downloads an item from an S3 Bucket
-//
-// Usage:
-//    go run s3_download.go BUCKET ITEM
-func main() {
-    // Initialize a session in us-west-2 that the SDK will use to load
-    // credentials from the shared credentials file ~/.aws/credentials.
-    sess, err := session.NewSession(&aws.Config{
-        Region: aws.String("us-west-2")},
-    )
-
-    // Create S3 service client
-    svc := s3.New(sess)
-
+    svc := s3.New(session.New(&aws.Config{Region: aws.String("us-west-2")}))
     req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
         Bucket: aws.String("myBucket"),
         Key:    aws.String("myKey"),
@@ -46,4 +24,3 @@ func main() {
     }
 
     log.Println("The URL is", urlStr)
-}

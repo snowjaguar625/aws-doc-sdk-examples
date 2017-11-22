@@ -41,7 +41,7 @@ func main() {
                 S: aws.String("The Big New Movie"),
             },
         },
-        TableName: aws.String("Movies"),
+        TableName: aws.String("MyMovies"),
     }
 
     _, err = svc.DeleteItem(input)

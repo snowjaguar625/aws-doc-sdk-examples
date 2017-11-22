@@ -12,30 +12,17 @@
 
 require 'openssl'
 
-# Require a pass phrase as command-line argument
-if empty?(ARGV)
-  puts 'You must supply a pass phrase'
-  exit 1
-end
-
-pass_phrase = ARGV[0]
+pass_phrase = 'mary had a little lamb'
 key = OpenSSL::PKey::RSA.new 2048
 
-# Files to store public and private keys
-public_key_file = 'public_key.pem'
-private_key_file = 'private_secure_key.pem'
-
-open public_key_file, 'w' do |io|
-  io.write key.public_key.to_pem
-end
+# public key saved as public_key.pem
+open 'public_key.pem', 'w' do |io| io.write key.public_key.to_pem end
 
 cipher = OpenSSL::Cipher.new 'AES-128-CBC'
+
 key_secure = key.export cipher, pass_phrase
 
-open private_key_file, 'w' do |io|
+# private key, protected by pass phrase, saved as private_secure_key.pem
+open 'private_secure_key.pem', 'w' do |io|
   io.write key_secure
 end
-
-puts 'The public key is in '  + public_key_file
-puts 'The private key is in ' + private_key_file + ' using the pass phrase:'
-puts '"' + pass_phrase + '"'

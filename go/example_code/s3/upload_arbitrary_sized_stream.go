@@ -11,52 +11,46 @@
    CONDITIONS OF ANY KIND, either express or implied. See the License for the
    specific language governing permissions and limitations under the License.
 */
-package main
 
-import (
-    "github.com/aws/aws-sdk-go/aws"
-    "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/service/s3/s3manager"
-    "compress/gzip"
-    "io"
-    "log"
-    "os"
-)
+    package main
 
-func main() {
-    file, err := os.Open("upload_file")
-    if err != nil {
-        log.Fatal("Failed to open file", err)
-    }
+    import (
+        "compress/gzip"
+        "io"
+        "log"
+        "os"
 
-    // Not required, but you could zip the file before uploading it
-    // using io.Pipe read/writer to stream gzip'd file contents.
-    reader, writer := io.Pipe()
-
-    go func() {
-        gw := gzip.NewWriter(writer)
-        io.Copy(gw, file)
-        file.Close()
-        gw.Close()
-        writer.Close()
-    }()
-
-    // Initialize a session in us-west-2 that the SDK will use to load
-    // credentials from the shared credentials file ~/.aws/credentials.
-    sess, err := session.NewSession(&aws.Config{
-        Region: aws.String("us-west-2")},
+        "github.com/aws/aws-sdk-go/aws"
+        "github.com/aws/aws-sdk-go/aws/session"
+        "github.com/aws/aws-sdk-go/service/s3/s3manager"
     )
 
-    uploader := s3manager.NewUploader(sess)
+    func main() {
+        file, err := os.Open("upload_file")
+        if err != nil {
+            log.Fatal("Failed to open file", err)
+        }
 
-    result, err := uploader.Upload(&s3manager.UploadInput{
-        Body:   reader,
-        Bucket: aws.String("myBucket"),
-        Key:    aws.String("myKey"),
-    })
-    if err != nil {
-        log.Fatalln("Failed to upload", err)
+        // Not required, but you could zip the file before uploading it
+        // using io.Pipe read/writer to stream gzip'd file contents.
+        reader, writer := io.Pipe()
+        go func() {
+            gw := gzip.NewWriter(writer)
+            io.Copy(gw, file)
+
+            file.Close()
+            gw.Close()
+            writer.Close()
+        }()
+        uploader := s3manager.NewUploader(session.New(&aws.Config{Region: aws.String("us-west-2")}))
+        result, err := uploader.Upload(&s3manager.UploadInput{
+            Body:   reader,
+            Bucket: aws.String("myBucket"),
+            Key:    aws.String("myKey"),
+        })
+        if err != nil {
+            log.Fatalln("Failed to upload", err)
+        }
+
+        log.Println("Successfully uploaded to", result.Location)
     }
-
-    log.Println("Successfully uploaded to", result.Location)
-}

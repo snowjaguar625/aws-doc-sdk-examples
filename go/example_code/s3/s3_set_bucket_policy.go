@@ -15,14 +15,15 @@
 package main
 
 import (
-    "github.com/aws/aws-sdk-go/aws"
-    "github.com/aws/aws-sdk-go/aws/awserr"
-    "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/service/s3"
     "encoding/json"
     "fmt"
     "os"
     "path/filepath"
+
+    "github.com/aws/aws-sdk-go/aws"
+    "github.com/aws/aws-sdk-go/aws/awserr"
+    "github.com/aws/aws-sdk-go/aws/session"
+    "github.com/aws/aws-sdk-go/service/s3"
 )
 
 // Sets a read only anonymous user policy for a bucket. If the bucket doesn't

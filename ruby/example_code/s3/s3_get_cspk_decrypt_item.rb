@@ -14,17 +14,11 @@ require 'aws-sdk-s3'  # In v2: require 'aws-sdk'
 require 'base64'
 require 'openssl'
 
-# Require a pass phrase as command-line argument
-if empty?(ARGV)
-  puts 'You must supply a pass phrase'
-  exit 1
-end
-
-pass_phrase = ARGV[0]
-
+region = 'us-west-2'
 bucket = 'my_bucket'
 item = 'my_item'
 pk_file = 'private_key_file.pem'
+pwd = 'mary had a little lamb'
 
 # Create S3 client
 client = Aws::S3::Client.new(region: region)
@@ -36,7 +30,7 @@ blob_string = blob.unpack('H*')
 cipher_text = blob_string[0].scan(/../).map { |x| x.hex }.pack('c*')
 
 # Decrypt the string using private key
-private_key = OpenSSL::PKey::RSA.new(File.read(pk_file), pass_phrase)
+private_key = OpenSSL::PKey::RSA.new(File.read(pk_file),pwd)
 decoded_text = private_key.private_decrypt(Base64.decode64(cipher_text))
 
 puts decoded_text

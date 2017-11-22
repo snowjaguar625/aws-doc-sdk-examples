@@ -33,7 +33,7 @@ func main() {
     // Create DynamoDB client
     svc := dynamodb.New(sess)
 
-    // Create table Movies
+    // Create table MyMovies
     input := &dynamodb.CreateTableInput{
         AttributeDefinitions: []*dynamodb.AttributeDefinition{
             {

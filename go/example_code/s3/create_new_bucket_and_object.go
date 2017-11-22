@@ -15,11 +15,12 @@
 package main
 
 import (
+    "fmt"
+    "os"
+
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/service/s3"
-    "log"
-    "strings"
+    "github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 // Downloads an item from an S3 Bucket in the region configured in the shared config
@@ -28,19 +29,12 @@ import (
 // Usage:
 //    go run s3_download.go BUCKET ITEM
 func main() {
+
     bucket := "myBucket"
     key := "TestFile.txt"
 
-    // Initialize a session in us-west-2 that the SDK will use to load
-    // credentials from the shared credentials file ~/.aws/credentials.
-    sess, err := session.NewSession(&aws.Config{
-        Region: aws.String("us-west-2")},
-    )
-
-    // Create S3 service client
-    svc := s3.New(sess)
-
-    _, err = svc.CreateBucket(&s3.CreateBucketInput{
+    svc := s3.New(session.New(&aws.Config{Region: aws.String("us-west-2")}))
+    result, err := svc.CreateBucket(&s3.CreateBucketInput{
         Bucket: &bucket,
     })
     if err != nil {
@@ -53,7 +47,7 @@ func main() {
         return
     }
 
-    _, err = svc.PutObject(&s3.PutObjectInput{
+    uploadResult, err := svc.PutObject(&s3.PutObjectInput{
         Body:   strings.NewReader("Hello World!"),
         Bucket: &bucket,
         Key:    &key,

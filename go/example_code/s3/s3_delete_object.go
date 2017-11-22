@@ -15,11 +15,12 @@
 package main
 
 import (
+    "fmt"
+    "os"
+
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/service/s3"
-    "fmt"
-    "os"
 )
 
 // Deletes the specified object in the specified S3 Bucket in the region configured in the shared config
@@ -46,7 +47,8 @@ func main() {
     svc := s3.New(sess)
 
     // Delete the item
-    _, err = svc.DeleteObject(&s3.DeleteObjectInput{Bucket: aws.String(bucket), Key: aws.String(obj)})
+    _, err := svc.DeleteObject(&s3.DeleteObjectInput{Bucket: aws.String(bucket), Key: aws.String(obj)})
+
     if err != nil {
         exitErrorf("Unable to delete object %q from bucket %q, %v", obj, bucket, err)
     }
@@ -55,11 +57,10 @@ func main() {
         Bucket: aws.String(bucket),
         Key:    aws.String(obj),
     })
+
     if err != nil {
         exitErrorf("Error occurred while waiting for object %q to be deleted, %v", obj)
     }
-
-    fmt.Printf("Object %q successfully deleted\n", obj)
 }
 
 func exitErrorf(msg string, args ...interface{}) {

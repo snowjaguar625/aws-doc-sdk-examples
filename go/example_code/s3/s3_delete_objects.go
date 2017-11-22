@@ -18,6 +18,7 @@ import (
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/service/s3"
+    
     "fmt"
     "os"
 )
@@ -35,11 +36,11 @@ func main() {
 
     bucket := os.Args[1]
 
-    // Initialize a session in us-west-2 that the SDK will use to load
-    // credentials from the shared credentials file ~/.aws/credentials.
-    sess, _ := session.NewSession(&aws.Config{
-        Region: aws.String("us-west-2")},
-    )
+    // Initialize a session that the SDK uses to load 
+    // credentials from the shared credentials file (~/.aws/credentials).
+    sess := session.Must(session.NewSessionWithOptions(session.Options{
+        SharedConfigState: session.SharedConfigEnable,
+    }))
 
     // Create S3 service client
     svc := s3.New(sess)
@@ -53,6 +54,7 @@ func main() {
 
     for hasMoreObjects {
         resp, err := svc.ListObjects(&s3.ListObjectsInput{Bucket: aws.String(bucket)})
+
         if err != nil {
             exitErrorf("Unable to list items in bucket %q, %v", bucket, err)
         }
@@ -74,6 +76,7 @@ func main() {
 
         // Delete the items
         _, err = svc.DeleteObjects(&s3.DeleteObjectsInput{Bucket: &bucket, Delete: &items})
+
         if err != nil {
             exitErrorf("Unable to delete objects from bucket %q, %v", bucket, err)
         }

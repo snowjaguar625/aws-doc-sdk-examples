@@ -15,11 +15,11 @@
 package main
 
 import (
-    "github.com/aws/aws-sdk-go/aws"
-    "github.com/aws/aws-sdk-go/aws/session"
-    "github.com/aws/aws-sdk-go/service/s3"
     "fmt"
     "os"
+
+    "github.com/aws/aws-sdk-go/aws/session"
+    "github.com/aws/aws-sdk-go/service/s3"
 )
 
 // Allows person with EMAIL address PERMISSION access to BUCKET OBJECT
@@ -48,6 +48,8 @@ func main() {
         }
     }
 
+    user_type := "AmazonCustomerByEmail"
+
     // Initialize a session in us-west-2 that the SDK will use to load
     // credentials from the shared credentials file ~/.aws/credentials.
     sess, err := session.NewSession(&aws.Config{
@@ -59,23 +61,23 @@ func main() {
 
     // Get existing ACL
     result, err := svc.GetObjectAcl(&s3.GetObjectAclInput{Bucket: &bucket, Key: &key})
+
     if err != nil {
         exitErrorf(err.Error())
     }
 
     owner := *result.Owner.DisplayName
-    ownerId := *result.Owner.ID
+    owner_id := *result.Owner.ID
 
     // Existing grants
     grants := result.Grants
 
     // Create new grantee to add to grants
-    userType := "AmazonCustomerByEmail"
-    var newGrantee = s3.Grantee{EmailAddress: &address, Type: &userType}
-    var newGrant = s3.Grant{Grantee: &newGrantee, Permission: &permission}
+    var new_grantee s3.Grantee = s3.Grantee{EmailAddress: &address, Type: &user_type}
+    var new_grant s3.Grant = s3.Grant{Grantee: &new_grantee, Permission: &permission}
 
     // Add them to the grants
-    grants = append(grants, &newGrant)
+    grants = append(grants, &new_grant)
 
     params := &s3.PutObjectAclInput{
         Bucket: &bucket,
@@ -84,13 +86,14 @@ func main() {
             Grants: grants,
             Owner: &s3.Owner{
                 DisplayName: &owner,
-                ID:          &ownerId,
+                ID:          &owner_id,
             },
         },
     }
 
     // Set bucket ACL
     _, err = svc.PutObjectAcl(params)
+
     if err != nil {
         exitErrorf(err.Error())
     }

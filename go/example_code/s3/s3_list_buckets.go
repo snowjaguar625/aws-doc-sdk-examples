@@ -15,11 +15,12 @@
 package main
 
 import (
+    "fmt"
+    "os"
+
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/service/s3"
-    "fmt"
-    "os"
 )
 
 func main() {
@@ -33,6 +34,7 @@ func main() {
     svc := s3.New(sess)
 
     result, err := svc.ListBuckets(nil)
+
     if err != nil {
         exitErrorf("Unable to list buckets, %v", err)
     }

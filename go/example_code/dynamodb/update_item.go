@@ -39,7 +39,7 @@ func main() {
                 N: aws.String("0.5"),
             },
         },
-        TableName: aws.String("Movies"),
+        TableName: aws.String("MyMovies"),
         Key: map[string]*dynamodb.AttributeValue{
             "year": {
                 N: aws.String("2015"),
